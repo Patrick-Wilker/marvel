@@ -1,10 +1,13 @@
 import React from 'react';
 
+import GlobalStyle from './assets/styles/global';
+
 function App() {
   return (
-    <div className="App">
-      <h1>Hello world</h1>
-    </div>
+    <>
+        <GlobalStyle/>
+        <h1>Hello world</h1>
+    </>
   );
 }
 
