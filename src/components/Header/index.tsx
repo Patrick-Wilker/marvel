@@ -1,4 +1,5 @@
 import React from 'react';
+import {Link} from 'react-router-dom';
 
 import logo from '../../assets/images/logo.png';
 
@@ -8,12 +9,15 @@ export default function Header(){
     return(
         <Container>
             <header>
-                <img src={logo} alt="Marvel"/>
+                <Link to="/">
+                    <img src={logo} alt="Marvel"/>
+                </Link>
+                
             </header>
             <nav>
                 <ul>
-                    <li>CHARACTERS</li>
-                    <li>COMICS</li>
+                    <Link to="/characters"><li>CHARACTERS</li></Link>
+                    <Link to="/comics"><li>COMICS</li></Link>
                 </ul>
             </nav>
         </Container>
