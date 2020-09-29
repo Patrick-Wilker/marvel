@@ -188,6 +188,24 @@ export const Results = styled.div`
         }
     }
 
+    .button{
+        width: 100%;
+        text-align: center;
+        margin-bottom: 50px;
+        button{
+            padding: 8px 25px;
+            border: 0;
+            border-radius: 0;
+            color: #FFF;
+            font-weight: bold;
+            background: #EE171F;
+
+            &:hover{
+                background: #fc383f;
+            }
+        }
+    }
+
     @media only screen and (max-width: 1000px){
         h1{
             width: 90%;

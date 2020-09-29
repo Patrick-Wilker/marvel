@@ -1,134 +1,174 @@
-import React from 'react';
+import React, { FormEvent, useState, useEffect } from 'react';
+import api from '../../services/api';
+import { ts, hash } from '../../services/marvelConfig';
 
 import Header from '../../components/Header';
 
-import {Search, Results} from './styles';
+import { Search, Results } from './styles';
 
-export default function Home(){
-    return(
+function Home(props: any) {
+
+    const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [name, setName] = useState('');
+    const [data, setData] = useState(
+        { id: 0, path: '', name: '', description: '', available: 0 }
+    )
+    const [comics, setComics] = useState([{
+        id: 0, title: '', description: '', thumbnail: { path: '', extension: '' },
+        creators: { available: 0, items: [{ name: '' }] }
+    }])
+
+    async function handleSearchCharacter(e: FormEvent) {
+        e.preventDefault();
+
+        setLoading(true);
+
+        try {
+            const response = await api.get(`/characters?name=${name}&ts=${ts}&apikey=${process.env.REACT_APP_API_KEY}&hash=${hash}`);
+            const newDatas =
+            {
+                id: response.data.data.results[0].id,
+                path: response.data.data.results[0].thumbnail.path + '.' + response.data.data.results[0].thumbnail.extension,
+                name: response.data.data.results[0].name,
+                description: response.data.data.results[0].description,
+                available: response.data.data.results[0].comics.available,
+            };
+
+            setData(newDatas);
+
+            if (response.data.data.results.length === 0) {
+                console.log('Not found character');
+            }
+
+        } catch (err) {
+            console.log(err)
+        }
+
+    }
+
+    useEffect(() => {
+        async function loadComics() {
+            if (data.id !== 0) {
+                const response = await api.get(`/characters/${data.id}/comics?ts=${ts}&apikey=${process.env.REACT_APP_API_KEY}&hash=${hash}`);
+
+                setComics(response.data.data.results);
+
+                setLoading(false);
+            }
+        }
+
+        loadComics()
+    }, [data]);
+
+    async function loadMore() {
+        setLoadingMore(true);
+
+        const offset = comics.length;
+
+        const response = await api.get(`/characters/${data.id}/comics?offset=${offset}&ts=${ts}&apikey=${process.env.REACT_APP_API_KEY}&hash=${hash}`);
+
+        const newComics = ([...comics, ...response.data.data.results]);
+
+        setComics(newComics)
+
+        setLoadingMore(false);
+    }
+
+
+    return (
         <>
-            <Header/>
+            <Header />
             <Search>
-                <form action="">
+                <form onSubmit={handleSearchCharacter}>
                     <div className="input-group">
-                        <label htmlFor="search">Informe o personagem</label>
-                        <input type="text" id="search" placeholder="(Ex: Hulk, Iron Man, Spider-Man, etc)"/>                     
+                        <label htmlFor="name">Enter the name of the character</label>
+                        <input
+                            type="text" id="name" placeholder="(Ex: Hulk, Iron Man, Spider-Man, etc)"
+                            onChange={e => setName(e.target.value)}
+                        />
                     </div>
                     <div className="button">
-                        <button>
-                            Buscar
+                        <button type="submit">
+                            {loading ? 'Loading' : 'Search'}
                         </button>
                     </div>
-                </form>                
+                </form>
             </Search>
 
-            <Results>
-                <h1>Personagem</h1>
+            {
+                data.id === 0 ? ''
+                    : (
+                        <Results>
+                            <h1>Character</h1>
 
-                <div className="character">
-                    <div className="character-img">
-                        <img src="https://upload.wikimedia.org/wikipedia/pt/9/91/Bruce_Banner.jpg" alt="Hulk"/>
-                    </div>
-                    <div className="character-content">
-                        <h2>Hulk</h2>
-                        <p>O Hulk, por vezes referido como O Incrível Hulk é um personagem de quadrinhos/banda desenhada do gênero super-herói, propriedade da Marvel Comics, editora pela qual as histórias do personagem são publicados desde sua criação, nos anos 1960.</p>
-                        <span>Comics | 1583</span>
+                            <div className="character">
+                                <div className="character-img">
+                                    <img src={data.path} alt={data.name} />
+                                </div>
+                                <div className="character-content">
+                                    <h2>{data.name}</h2>
+                                    <p>{data.description}</p>
+                                    <span>Comics | {data.available}</span>
 
-                        <footer>
-                            Data provided by Marvel &copy; 2020 Marvel
-                        </footer>
-                    </div>
-                </div>
-
-                <h1>Histórias em quadrinhos</h1>
-
-                <ul className="comics">
-                    <li>
-                        <div className="comic-img">
-                            <img src="https://upload.wikimedia.org/wikipedia/pt/9/91/Bruce_Banner.jpg" alt="Hulk"/>
-                        </div>
-                        <div className="comic-content">
-                            <div className="text">
-                               <h2>Titulo</h2>
-                                <p>O Hulk, por vezes referido como O Incrível Hulk é um personagem de quadrinhos/banda desenhada do gênero super-herói, propriedade da Marvel Comics, editora pela qual as histórias do personagem são publicados desde sua criação, nos anos 1960.</p>
-
-                                <span>Criador: Fulano</span> 
-                            </div>
-                            
-                            <footer>
-                                <span>Data provided by Marvel &copy; 2020 Marvel</span>
-                            </footer>
-                        </div>
-                    </li>
-
-                    <li>
-                        <div className="comic-img">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSNW4l9kEi1xGPbK75hvqnrOlOV4S4FB1QiHw&usqp=CAU" alt="Hulk"/>
-                        </div>
-                        <div className="comic-content">
-                            <div className="text">
-                                <h2>Titulo</h2>
-                                <p>O Hulk, por vezes referido como O Incrível Hulk é um personagem de quadrinhos/banda desenhada do gênero super-herói, propriedade da Marvel Comics, editora pela qual as histórias do personagem são publicados desde sua criação, nos anos 1960.</p>
-
-                                <span>Criador: Fulano</span>                                
+                                    <footer>
+                                        Data provided by Marvel &copy; 2020 Marvel
+                                </footer>
+                                </div>
                             </div>
 
-                            <footer>
-                                <span>Data provided by Marvel &copy; 2020 Marvel</span>
-                            </footer>
-                        </div>
-                    </li>
-                    <li>
-                        <div className="comic-img">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSieBqtLwWlPpJ-quR2d8uGM7pEVuLXn3hK7w&usqp=CAU" alt="Hulk"/>
-                        </div>
-                        <div className="comic-content">
-                            <div className="text">
-                                <h2>Titulo</h2>
-                                <p>O Hulk, por vezes referido como O Incrível Hulk é um personagem de quadrinhos/banda desenhada do gênero super-herói, propriedade da Marvel Comics, editora pela qual as histórias do personagem são publicados desde sua criação, nos anos 1960.</p>
+                            <h1>Comics</h1>
 
-                                <span>Criador: Fulano</span>                                
+                            <ul className="comics">
+                                {
+                                    comics.length > 0 ? comics.map((comic, i) => {
+                                        return (
+                                            <li key={comic.id}>
+                                                <div className="comic-img">
+                                                    <img src={comic.thumbnail.path + '.' + comic.thumbnail.extension} alt={comic.title} />
+                                                </div>
+                                                <div className="comic-content">
+                                                    <div className="text">
+                                                        <h2>{comic.title}</h2>
+                                                        <p>{comic.description ? comic.description : 'No description available'}</p>
+
+                                                        <span>
+                                                            Criador | {
+                                                                comic.creators.items.length === 0
+                                                                    ? 'Unknown'
+                                                                    : comic.creators.items.length === 1
+                                                                        ? comic.creators.items.map(item =>
+                                                                            item.name)
+                                                                        : comic.creators.items.map((item, i) =>
+                                                                            comic.creators.available === (i + 1) ?
+                                                                                item.name + ' ' : item.name + ' | ')
+                                                            }
+                                                        </span>
+
+                                                    </div>
+
+                                                    <footer>
+                                                        <span>Data provided by Marvel &copy; 2020 Marvel</span>
+                                                    </footer>
+                                                </div>
+                                            </li>
+                                        )
+                                    })
+
+                                        : ''
+                                }
+                            </ul>
+                            <div className="button">
+                                <button onClick={loadMore}>
+                                    { loadingMore ? 'Loading' : 'More'}
+                                </button>
                             </div>
-                            <footer>
-                                <span>Data provided by Marvel &copy; 2020 Marvel</span>
-                            </footer>
-                        </div>
-                    </li>
-                    <li>
-                        <div className="comic-img">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcS4LrEf2wkGsn_650oIxMcUE-_p3iD9hP70iQ&usqp=CAU" alt="Hulk"/>
-                        </div>
-                        <div className="comic-content">
-                            <div className="text">
-                                <h2>Titulo</h2>
-                                <p>O Hulk, por vezes referido como O Incrível Hulk é um personagem de quadrinhos/banda desenhada do gênero super-herói, propriedade da Marvel Comics, editora pela qual as histórias do personagem são publicados desde sua criação, nos anos 1960.</p>
+                        </Results>
+                    )
+            }
 
-                                <span>Criador: Fulano</span>                                
-                            </div>
-                            <footer>
-                                <span>Data provided by Marvel &copy; 2020 Marvel</span>
-                            </footer>
-                        </div>
-                    </li>
-                    <li>
-                        <div className="comic-img">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRdX5GVikzwxXaXaZBzwNO6FjiqaDxMLhKSbg&usqp=CAU" alt="Hulk"/>
-                        </div>
-                        <div className="comic-content">
-                            <div className="text">
-                                <h2>Titulo</h2>
-                                <p>O Hulk, por vezes referido como O Incrível Hulk é um personagem de quadrinhos/banda desenhada do gênero super-herói, propriedade da Marvel Comics, editora pela qual as histórias do personagem são publicados desde sua criação, nos anos 1960.</p>
-
-                                <span>Criador: Fulano</span>                                
-                            </div>
-                            <footer>
-                                <span>Data provided by Marvel &copy; 2020 Marvel</span>
-                            </footer>
-                        </div>
-                    </li>
-
-                </ul>
-            </Results>
         </>
     );
 }
+
+export default Home;
