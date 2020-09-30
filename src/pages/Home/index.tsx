@@ -1,6 +1,7 @@
 import React, { FormEvent, useState, useEffect } from 'react';
 import api from '../../services/api';
 import { ts, hash } from '../../services/marvelConfig';
+import { toast } from 'react-toastify';
 
 import Header from '../../components/Header';
 
@@ -22,6 +23,11 @@ function Home(props: any) {
     async function handleSearchCharacter(e: FormEvent) {
         e.preventDefault();
 
+        if(!name){
+            toast.error('Enter a name');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -37,12 +43,10 @@ function Home(props: any) {
 
             setData(newDatas);
 
-            if (response.data.data.results.length === 0) {
-                console.log('Not found character');
-            }
-
         } catch (err) {
-            console.log(err)
+            toast.error('No character found');
+            setLoading(false);
+            return;
         }
 
     }
@@ -84,7 +88,7 @@ function Home(props: any) {
                     <div className="input-group">
                         <label htmlFor="name">Enter the name of the character</label>
                         <input
-                            type="text" id="name" placeholder="(Ex: Hulk, Iron Man, Spider-Man, etc)"
+                            type="text" id="name" placeholder="(Ex: Hulk, Iron Man, Spider-Man, etc)" required
                             onChange={e => setName(e.target.value)}
                         />
                     </div>

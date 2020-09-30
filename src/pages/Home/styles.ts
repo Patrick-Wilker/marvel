@@ -23,6 +23,10 @@ export const Search = styled.div`
                 width: 100%;
                 padding: 5px 8px;
                 margin: 0 0 10px;
+
+                &:focus{
+                    outline: 0;
+                }
             }
         }
 
@@ -130,13 +134,13 @@ export const Results = styled.div`
         width: 70%;
         margin: 0 auto 50px;
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
 
         li{
             .comic-img{
                 background: #ccc;
-                height: 300px;
+                height: 500px;
                 overflow: hidden;
 
                 img{
@@ -215,12 +219,6 @@ export const Results = styled.div`
         }
         .comics{
             width: 90%;
-        }
-    }
-
-    @media only screen and (max-width: 900px){
-        .comics{
-            grid-template-columns: 1fr 1fr;
         }
     }
 
